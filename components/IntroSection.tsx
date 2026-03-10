@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 
-const Globe = dynamic(() => import('./Globe'), { ssr: false })
+const Globe3D = dynamic(() => import('./Globe3D'), { ssr: false })
 
 interface IntroSectionProps {
   children: React.ReactNode
@@ -26,52 +26,29 @@ export default function IntroSection({ children }: IntroSectionProps) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const globeScale = 1 - scrollProgress * 0.7
-  const globeOpacity = 1 - scrollProgress * 0.95
-  const contentOpacity = Math.min(scrollProgress * 1.5, 1)
-  const contentScale = 0.95 + scrollProgress * 0.05
-
   return (
     <div className="relative">
-      {/* Área de scroll - estrutura em camadas para evitar desalinhamento */}
-      <div className="min-h-[200vh]">
-        {/* Camada 1: Globo fixo (sticky) */}
-        <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden pt-16 pb-0">
-          <div
-            className="absolute inset-0 flex items-center justify-center"
-            style={{
-              transform: `scale(${Math.max(globeScale, 0.25)})`,
-              opacity: globeOpacity,
-              transformOrigin: 'center center',
-            }}
-          >
-            <Globe fullScreen />
-          </div>
-
-          {/* Hint - desaparece ao scrollar */}
-          <div 
-            className="absolute bottom-20 left-0 right-0 text-center z-10 pointer-events-none"
-            style={{ opacity: Math.max(0, 1 - scrollProgress * 4) }}
-          >
-            <p className="text-sky-400/70 text-sm tracking-[0.3em] uppercase font-medium">
-              GestorTrip
-            </p>
-            <p className="text-slate-500 text-xs mt-3 animate-pulse">
-              ↓ Role para entrar ↓
-            </p>
+      {/* Mobile: hero em tela cheia com globo embaixo. Desktop: só o bloco de conteúdo (globo fica na coluna da página) */}
+      <div className="min-h-0 lg:min-h-0">
+        <div className="min-h-[100vh] flex flex-col justify-center lg:min-h-0 lg:flex-none">
+          <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-8 px-6 lg:grid-cols-1 lg:max-w-none">
+            <div className="relative z-10 flex flex-col items-start text-left">
+              {children}
+            </div>
+            {/* Globo só no mobile (no desktop fica na coluna esquerda da página) */}
+            <div className="relative flex shrink-0 items-center justify-center lg:hidden" style={{ transform: 'none', willChange: 'auto' }}>
+              <div className="h-[320px] w-[320px] shrink-0" style={{ transform: 'none' }}>
+                <Globe3D scrollProgress={scrollProgress} />
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Camada 2: Conteúdo - posicionado no fluxo, entra suavemente */}
+        {/* Hint - desaparece ao scrollar */}
         <div
-          className="relative z-20 pt-[60vh] pb-24 px-4 mx-auto max-w-6xl"
-          style={{
-            opacity: contentOpacity,
-            transform: `scale(${contentScale})`,
-            transformOrigin: 'top center',
-          }}
+          className="absolute bottom-8 left-0 right-0 z-10 text-center pointer-events-none lg:hidden"
+          style={{ opacity: Math.max(0, 1 - scrollProgress * 3) }}
         >
-          {children}
+          <p className="text-slate-500 text-xs animate-pulse">↓ Role para continuar ↓</p>
         </div>
       </div>
     </div>
